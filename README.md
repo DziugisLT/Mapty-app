@@ -1,4 +1,4 @@
-# Mapty-app
+# Mapty
 
-![screely-1626085303395](https://user-images.githubusercontent.com/42406609/125272077-1bc9e780-e314-11eb-814f-ccd94bc6ef05.png)
+![screely-1626085457168](https://user-images.githubusercontent.com/42406609/125272395-782d0700-e314-11eb-9da8-11bfbafbe07f.png)
 
