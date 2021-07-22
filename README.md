@@ -38,4 +38,4 @@ Mapty is a web application created with JavaScript for mapping your workouts.
 ### P.S
 
 The idea and entire style of the page created by Jonas Schmedtmann 
-
+Additional features created by me
