@@ -4,12 +4,26 @@
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const form = document.querySelector('.form');
+const formEdit = document.querySelector('.form__edit');
 const containerWorkouts = document.querySelector('.workouts');
 const inputType = document.querySelector('.form__input--type');
 const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+
+const inputTypeEdit = document.querySelector('.form__input--type--edit');
+const inputDistanceEdit = document.querySelector(
+  '.form__input--distance--edit'
+);
+const inputDurationEdit = document.querySelector(
+  '.form__input--duration--edit'
+);
+const inputCadenceEdit = document.querySelector('.form__input--cadence--edit');
+const inputElevationEdit = document.querySelector(
+  '.form__input--elevation--edit'
+);
+const btnDeleteAll = document.querySelector('.btn-delete-all');
 
 class Workout {
   date = new Date();
@@ -82,6 +96,10 @@ class App {
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
 
     containerWorkouts.addEventListener('click', this._deleteWorkout.bind(this));
+
+    containerWorkouts.addEventListener('click', this._editWorkout.bind(this));
+
+    btnDeleteAll.addEventListener('click', this._deleteAllWorkouts.bind(this));
   }
 
   _getPosition() {
@@ -120,6 +138,11 @@ class App {
     inputDistance.focus();
   }
 
+  _showEditForm() {
+    formEdit.classList.remove('hidden');
+    inputDistance.focus();
+  }
+
   _hideForm() {
     inputCadence.value =
       inputDuration.value =
@@ -133,18 +156,44 @@ class App {
     }, 1000);
   }
 
+  _hideEditForm() {
+    inputCadenceEdit.value =
+      inputDurationEdit.value =
+      inputElevationEdit.value =
+      inputDistanceEdit.value =
+        '';
+    formEdit.style.display = 'none';
+    formEdit.classList.add('hidden');
+    setTimeout(() => {
+      formEdit.style.display = 'grid';
+    }, 1000);
+  }
+
   _toggleElevationField() {
     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
   }
 
+  _addCadenceField() {
+    inputCadenceEdit
+      .closest('.form__row')
+      .classList.remove('form__row--hidden');
+    inputElevationEdit.closest('.form__row').classList.add('form__row--hidden');
+  }
+
+  _addElevationField() {
+    inputCadenceEdit.closest('.form__row').classList.add('form__row--hidden');
+    inputElevationEdit
+      .closest('.form__row')
+      .classList.remove('form__row--hidden');
+  }
+
   _newWorkout(e) {
+    e.preventDefault();
     const validInputs = (...inputs) =>
       inputs.every((inp) => Number.isFinite(inp));
 
     const allPositive = (...inputs) => inputs.every((inp) => inp > 0);
-
-    e.preventDefault();
 
     const type = inputType.value;
     const distance = +inputDistance.value;
@@ -262,7 +311,10 @@ class App {
   }
 
   _moveToPopup(e) {
-    if (!e.target.classList.contains('workout__delete')) {
+    if (
+      !e.target.classList.contains('workout__delete') &&
+      !e.target.classList.contains('workout__edit')
+    ) {
       const workoutEl = e.target.closest('.workout');
 
       if (!workoutEl) return;
@@ -308,6 +360,169 @@ class App {
     marker.remove();
   }
 
+  _editWorkout(e) {
+    if (e.target.classList.contains('workout__edit')) {
+      const workoutEl = e.target.closest('.workout');
+
+      if (!workoutEl) return;
+
+      let workout = this.#workouts.find((work) => {
+        if (work instanceof Workout) {
+          const { ...object } = work;
+          return object.id === workoutEl.dataset.id;
+        }
+        return work.id === workoutEl.dataset.id;
+      });
+
+      const index = this.#workouts.indexOf(workout);
+
+      console.log(workout);
+
+      this._showEditForm();
+
+      inputTypeEdit.value = workout.type;
+      inputDistanceEdit.value = workout.distance;
+      inputDurationEdit.value = workout.duration;
+
+      if (inputTypeEdit.value === 'running') {
+        inputCadenceEdit.value = workout.cadence;
+        this._addCadenceField();
+      }
+      if (inputTypeEdit.value === 'cycling') {
+        inputElevationEdit.value = workout.elevationGain;
+        this._addElevationField();
+      }
+
+      formEdit.addEventListener(
+        'submit',
+        function (e) {
+          const validInputs = (...inputs) =>
+            inputs.every((inp) => Number.isFinite(inp));
+
+          const allPositive = (...inputs) => inputs.every((inp) => inp > 0);
+
+          e.preventDefault();
+
+          const type = inputTypeEdit.value;
+          const distance = +inputDistanceEdit.value;
+          const duration = +inputDurationEdit.value;
+
+          if (type === 'running') {
+            const cadence = Number(inputCadenceEdit.value);
+
+            const test1 = validInputs(distance, duration, cadence);
+            const test2 = allPositive(distance, duration, cadence);
+            console.log(
+              [distance, duration, cadence],
+              test1,
+              test2,
+              e.target.classList.contains('hidden')
+            );
+
+            if (
+              !validInputs(distance, duration, cadence) ||
+              !allPositive(distance, duration, cadence)
+            ) {
+              console.log(e);
+              return alert('Inputs have to be positive numbers!');
+            }
+            console.log(e);
+            workout = new Running(workout.coords, distance, duration, cadence);
+            console.log(workout);
+          }
+
+          if (type === 'cycling') {
+            const elevation = Number(inputElevationEdit.value);
+            if (
+              !validInputs(distance, duration, elevation) ||
+              !allPositive(distance, duration)
+            ) {
+              return alert('Inputs have to be positive numbers!');
+            }
+            workout = new Cycling(
+              workout.coords,
+              distance,
+              duration,
+              elevation
+            );
+            console.log(workout);
+          }
+
+          workoutEl.innerHTML = `
+            <h2 class="workout__title">${workout.description}</h2>
+            <button class="workout__edit">&#9998;</button>
+            <button class="workout__delete">&times;</button>
+            <div class="workout__details">
+              <span class="workout__icon">${
+                type === 'running' ? '🏃' : '🚴‍♂️'
+              }</span>
+              <span class="workout__value">${workout.distance}</span>
+              <span class="workout__unit">km</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⏱</span>
+              <span class="workout__value">${workout.duration}</span>
+              <span class="workout__unit">min</span>
+            </div>
+          `;
+
+          if (type === 'running') {
+            workoutEl.innerHTML += `
+            <div class="workout__details">
+              <span class="workout__icon">⚡️</span>
+              <span class="workout__value">${workout.pace.toFixed(1)}</span>
+              <span class="workout__unit">min/km</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">🦶🏼</span>
+              <span class="workout__value">${workout.cadence}</span>
+              <span class="workout__unit">spm</span>
+            </div>
+          </li>
+          `;
+          }
+
+          if (type === 'cycling') {
+            workoutEl.innerHTML += `
+            <div class="workout__details">
+              <span class="workout__icon">⚡️</span>
+              <span class="workout__value">${workout.speed.toFixed(1)}</span>
+              <span class="workout__unit">km/h</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⛰</span>
+              <span class="workout__value">${workout.elevationGain}</span>
+              <span class="workout__unit">m</span>
+            </div>
+          </li>
+          `;
+          }
+
+          workoutEl.dataset.id = workout.id;
+          this.#workouts.splice(index, 1);
+          this.#workouts.splice(index, 0, workout);
+
+          this._setLocalStorage();
+          this._hideEditForm();
+
+          console.log('submited');
+        }.bind(this)
+      );
+    }
+  }
+
+  _deleteAllWorkouts(e) {
+    e.preventDefault();
+
+    this.#markers.forEach((marker) => marker.remove());
+
+    this.#workouts = [];
+    containerWorkouts
+      .querySelectorAll('.workout')
+      .forEach((work) => work.remove());
+    this._setLocalStorage();
+  }
+
   _setLocalStorage() {
     localStorage.setItem('workouts', JSON.stringify(this.#workouts));
   }
@@ -330,4 +545,3 @@ class App {
 }
 
 const app = new App();
-
