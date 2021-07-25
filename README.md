@@ -22,7 +22,7 @@ Mapty is a web application created with JavaScript for mapping your workouts.
 
 ## Upcoming features
 
-- [X] Ability to edit workout (Not fully finished, has some bugs)
+- [X] Ability to edit workout (Not fully finished, has some bugs, fixing atm)
 - [X] Ability to delete workout
 - [X] Ability to delete all workouts in UI, not via `app.reset()` in the console
 - [ ] Ability to sort workout by a certain field (e.g. distance)
