@@ -1,6 +1,6 @@
 # Mapty
 
-Mapty is a web application created with JavaScript for mapping your workouts.  
+Mapty is a web application created with JavaScript for mapping your workouts.
 
 ## Tools
 
